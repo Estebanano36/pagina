@@ -1,0 +1,1933 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Tracker - Contador de Tiempo y Trofeos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: var(--bg-color, #0f0f0f);
+            color: #ffffff;
+            min-height: 100vh;
+            padding-bottom: 80px;
+            transition: background-color 0.3s ease;
+        }
+
+        .container {
+            max-width: 448px;
+            margin: 0 auto;
+        }
+
+        /* Login Screen */
+        .login-screen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .login-box {
+            background-color: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 16px;
+            padding: 32px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-logo {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .login-logo svg {
+            width: 64px;
+            height: 64px;
+            color: #3b82f6;
+            margin-bottom: 16px;
+        }
+
+        .login-logo h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .login-logo p {
+            color: #a3a3a3;
+            font-size: 14px;
+        }
+
+        .login-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            background-color: #0f0f0f;
+            padding: 4px;
+            border-radius: 8px;
+        }
+
+        .login-tab {
+            flex: 1;
+            padding: 8px;
+            background: transparent;
+            border: none;
+            color: #a3a3a3;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .login-tab.active {
+            background-color: #3b82f6;
+            color: white;
+        }
+
+        /* Header */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background-color: rgba(15, 15, 15, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #2a2a2a;
+            padding: 16px;
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-title svg {
+            width: 24px;
+            height: 24px;
+            color: #3b82f6;
+        }
+
+        .header-title h1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .user-info {
+            font-size: 12px;
+            color: #a3a3a3;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .stat-card {
+            background-color: #1a1a1a;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .stat-card svg {
+            width: 16px;
+            height: 16px;
+            margin: 0 auto 4px;
+            opacity: 0.6;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            opacity: 0.6;
+        }
+
+        /* Content */
+        .content {
+            padding: 16px;
+        }
+
+        /* Game Cards */
+        .games-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .game-card {
+            background-color: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 12px;
+            padding: 16px;
+            transition: box-shadow 0.3s;
+        }
+
+        .game-card:hover {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .game-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .game-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .game-badges {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-secondary {
+            background-color: #2a2a2a;
+            color: #e5e5e5;
+        }
+
+        .badge-outline {
+            border: 1px solid #2a2a2a;
+            color: #a3a3a3;
+        }
+
+        .game-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .game-stat-box {
+            background-color: #0f0f0f;
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .game-stat-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .game-stat-content svg {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+
+        .game-stat-label {
+            font-size: 12px;
+            opacity: 0.6;
+            margin-bottom: 2px;
+        }
+
+        .game-stat-value {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+
+        .btn-secondary {
+            background-color: #2a2a2a;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #3a3a3a;
+        }
+
+        .btn-destructive {
+            background-color: #dc2626;
+            color: white;
+        }
+
+        .btn-destructive:hover {
+            background-color: #b91c1c;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid #2a2a2a;
+            color: white;
+        }
+
+        .btn-outline:hover {
+            background-color: #1a1a1a;
+        }
+
+        .btn-ghost {
+            background-color: transparent;
+            color: white;
+        }
+
+        .btn-ghost:hover {
+            background-color: #1a1a1a;
+        }
+
+        .btn-icon {
+            padding: 8px;
+            width: 32px;
+            height: 32px;
+        }
+
+        .btn-full {
+            width: 100%;
+        }
+
+        .btn-lg {
+            padding: 14px 24px;
+            font-size: 16px;
+        }
+
+        .btn-delete {
+            color: #ef4444;
+        }
+
+        .btn-delete:hover {
+            color: #dc2626;
+            background-color: rgba(239, 68, 68, 0.1);
+        }
+
+        /* FAB */
+        .fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            z-index: 50;
+        }
+
+        .fab:hover {
+            background-color: #2563eb;
+            transform: scale(1.05);
+        }
+
+        .fab svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .fab-menu {
+            position: fixed;
+            bottom: 90px;
+            right: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 49;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s;
+        }
+
+        .fab-menu.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .fab-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .fab-label {
+            background-color: #1a1a1a;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .fab-button {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: #2a2a2a;
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .fab-button:hover {
+            background-color: #3a3a3a;
+            transform: scale(1.05);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background-color: #1a1a1a;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 448px;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 24px;
+            position: relative;
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: transparent;
+            border: none;
+            color: #a3a3a3;
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            color: white;
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .form-input,
+        .form-select {
+            width: 100%;
+            padding: 10px 12px;
+            background-color: #0f0f0f;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .form-input:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 64px 16px;
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 16px;
+            opacity: 0.3;
+        }
+
+        .empty-state h2 {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            color: #a3a3a3;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        /* Trophy List */
+        .trophy-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .trophy-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+        }
+
+        .trophy-item:hover {
+            background-color: rgba(42, 42, 42, 0.5);
+        }
+
+        .trophy-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .trophy-icon {
+            width: 16px;
+            height: 16px;
+            color: #eab308;
+            flex-shrink: 0;
+        }
+
+        .trophy-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .trophy-name {
+            font-size: 14px;
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .trophy-date {
+            font-size: 12px;
+            color: #a3a3a3;
+        }
+
+        .trophy-badge {
+            font-size: 11px;
+            padding: 4px 8px;
+        }
+
+        .trophy-badge.bronze {
+            background-color: #92400e;
+            color: white;
+        }
+
+        .trophy-badge.silver {
+            background-color: #9ca3af;
+            color: black;
+        }
+
+        .trophy-badge.gold {
+            background-color: #eab308;
+            color: black;
+        }
+
+        .trophy-badge.platinum {
+            background-color: #3b82f6;
+            color: white;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .form-actions .btn {
+            flex: 1;
+        }
+
+        .add-trophy-form {
+            padding: 16px;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            background-color: rgba(42, 42, 42, 0.3);
+            margin-bottom: 16px;
+        }
+
+        /* Gallery */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .gallery-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            background-color: #2a2a2a;
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+
+        .gallery-item:hover img {
+            transform: scale(1.05);
+        }
+
+        .gallery-upload {
+            aspect-ratio: 1;
+            border: 2px dashed #2a2a2a;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background-color: #1a1a1a;
+        }
+
+        .gallery-upload:hover {
+            border-color: #3b82f6;
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+
+        .gallery-upload svg {
+            width: 32px;
+            height: 32px;
+            margin-bottom: 8px;
+            opacity: 0.5;
+        }
+
+        .gallery-upload span {
+            font-size: 12px;
+            color: #a3a3a3;
+        }
+
+        .gallery-delete {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background-color: rgba(220, 38, 38, 0.9);
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .gallery-item:hover .gallery-delete {
+            opacity: 1;
+        }
+
+        /* Image Zoom Modal */
+        .zoom-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.95);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .zoom-overlay.active {
+            display: flex;
+        }
+
+        .zoom-container {
+            position: relative;
+            max-width: 100%;
+            max-height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .zoom-image {
+            max-width: 100%;
+            max-height: 90vh;
+            object-fit: contain;
+            transition: transform 0.3s;
+        }
+
+        .zoom-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 12px;
+            background-color: rgba(26, 26, 26, 0.9);
+            padding: 12px;
+            border-radius: 12px;
+        }
+
+        .zoom-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background-color: #2a2a2a;
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .zoom-btn:hover {
+            background-color: #3a3a3a;
+        }
+
+        /* Calculator */
+        .calculator {
+            background-color: #1a1a1a;
+            border-radius: 12px;
+            padding: 20px;
+            max-width: 320px;
+        }
+
+        .calculator-display {
+            background-color: #0f0f0f;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
+            text-align: right;
+            font-size: 32px;
+            font-weight: 600;
+            min-height: 60px;
+            word-wrap: break-word;
+        }
+
+        .calculator-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .calc-btn {
+            padding: 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            background-color: #2a2a2a;
+            color: white;
+        }
+
+        .calc-btn:hover {
+            background-color: #3a3a3a;
+        }
+
+        .calc-btn.operator {
+            background-color: #3b82f6;
+        }
+
+        .calc-btn.operator:hover {
+            background-color: #2563eb;
+        }
+
+        .calc-btn.equals {
+            background-color: #10b981;
+            grid-column: span 2;
+        }
+
+        .calc-btn.equals:hover {
+            background-color: #059669;
+        }
+
+        .calc-btn.clear {
+            background-color: #dc2626;
+        }
+
+        .calc-btn.clear:hover {
+            background-color: #b91c1c;
+        }
+
+        /* Color Picker */
+        .color-picker-container {
+            padding: 20px;
+        }
+
+        .color-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .color-option {
+            aspect-ratio: 1;
+            border-radius: 12px;
+            border: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .color-option:hover {
+            transform: scale(1.05);
+        }
+
+        .color-option.selected {
+            border-color: #3b82f6;
+        }
+
+        .color-option.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            color: white;
+            text-shadow: 0 0 4px rgba(0,0,0,0.5);
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-box">
+            <div class="login-logo">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h1>Game Tracker</h1>
+                <p>Rastrea tu tiempo y trofeos</p>
+            </div>
+
+            <div class="login-tabs">
+                <button class="login-tab active" onclick="switchTab('login')">Iniciar Sesión</button>
+                <button class="login-tab" onclick="switchTab('register')">Registrarse</button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label class="form-label" for="loginUsername">Usuario</label>
+                    <input type="text" class="form-input" id="loginUsername" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="loginPassword">Contraseña</label>
+                    <input type="password" class="form-input" id="loginPassword" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full btn-lg">Iniciar Sesión</button>
+            </form>
+
+            <!-- Register Form -->
+            <form id="registerForm" class="hidden" onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label class="form-label" for="registerUsername">Usuario</label>
+                    <input type="text" class="form-input" id="registerUsername" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="registerEmail">Email</label>
+                    <input type="email" class="form-input" id="registerEmail" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="registerPassword">Contraseña</label>
+                    <input type="password" class="form-input" id="registerPassword" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full btn-lg">Crear Cuenta</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="mainApp" class="hidden">
+        <div class="container">
+            <!-- Header -->
+            <div class="header">
+                <div class="header-top">
+                    <div class="header-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <h1>Game Tracker</h1>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-icon btn-ghost" onclick="openColorPicker()">
+                            <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                            </svg>
+                        </button>
+                        <button class="btn btn-icon btn-ghost" onclick="logout()">
+                            <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="user-info">Hola, <span id="currentUsername"></span>!</div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                        <div class="stat-value" id="totalGames">0</div>
+                        <div class="stat-label">Juegos</div>
+                    </div>
+                    <div class="stat-card">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <div class="stat-value" id="totalTime">0h</div>
+                        <div class="stat-label">Tiempo</div>
+                    </div>
+                    <div class="stat-card">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <div class="stat-value" id="totalTrophies">0</div>
+                        <div class="stat-label">Trofeos</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="content">
+                <div id="gamesList" class="games-list"></div>
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <h2>No hay juegos aún</h2>
+                    <p>Toca el botón + para agregar tu primer juego</p>
+                </div>
+            </div>
+
+            <!-- FAB Menu -->
+            <div class="fab-menu" id="fabMenu">
+                <div class="fab-item">
+                    <span class="fab-label">Agregar Juego</span>
+                    <button class="fab-button" onclick="openAddGameModal(); toggleFabMenu()">
+                        <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="fab-item">
+                    <span class="fab-label">Galería</span>
+                    <button class="fab-button" onclick="openGalleryModal(); toggleFabMenu()">
+                        <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="fab-item">
+                    <span class="fab-label">Calculadora</span>
+                    <button class="fab-button" onclick="openCalculator(); toggleFabMenu()">
+                        <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main FAB -->
+            <button class="fab" id="mainFab" onclick="toggleFabMenu()">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Add Game Modal -->
+    <div class="modal-overlay" id="addGameModal">
+        <div class="modal">
+            <button class="modal-close" onclick="closeAddGameModal()">
+                <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <div class="modal-header">
+                <h2 class="modal-title">Agregar Nuevo Juego</h2>
+            </div>
+            <form onsubmit="addGame(event)">
+                <div class="form-group">
+                    <label class="form-label" for="gameName">Nombre del Juego</label>
+                    <input type="text" class="form-input" id="gameName" placeholder="Ej: The Legend of Zelda" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="gamePlatform">Plataforma</label>
+                    <select class="form-select" id="gamePlatform" required>
+                        <option value="">Selecciona una plataforma</option>
+                        <option value="PlayStation 5">PlayStation 5</option>
+                        <option value="PlayStation 4">PlayStation 4</option>
+                        <option value="Xbox Series X/S">Xbox Series X/S</option>
+                        <option value="Xbox One">Xbox One</option>
+                        <option value="Nintendo Switch">Nintendo Switch</option>
+                        <option value="PC">PC</option>
+                        <option value="Mobile">Mobile</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="gameGenre">Género</label>
+                    <select class="form-select" id="gameGenre" required>
+                        <option value="">Selecciona un género</option>
+                        <option value="Acción">Acción</option>
+                        <option value="Aventura">Aventura</option>
+                        <option value="RPG">RPG</option>
+                        <option value="Estrategia">Estrategia</option>
+                        <option value="Deportes">Deportes</option>
+                        <option value="Carreras">Carreras</option>
+                        <option value="Shooter">Shooter</option>
+                        <option value="Plataformas">Plataformas</option>
+                        <option value="Puzzle">Puzzle</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full btn-lg">Agregar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Trophies Modal -->
+    <div class="modal-overlay" id="trophiesModal">
+        <div class="modal">
+            <button class="modal-close" onclick="closeTrophiesModal()">
+                <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color: #eab308;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                    </svg>
+                    <span id="trophiesGameName">Trofeos</span>
+                </h2>
+            </div>
+            <div id="trophiesContent"></div>
+        </div>
+    </div>
+
+    <!-- Gallery Modal -->
+    <div class="modal-overlay" id="galleryModal">
+        <div class="modal">
+            <button class="modal-close" onclick="closeGalleryModal()">
+                <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Galería de Capturas
+                </h2>
+            </div>
+            <div class="gallery-grid" id="galleryGrid">
+                <label class="gallery-upload">
+                    <input type="file" accept="image/*" onchange="uploadImage(event)" style="display: none;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span>Agregar Imagen</span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Zoom Modal -->
+    <div class="zoom-overlay" id="zoomOverlay" onclick="closeZoom()">
+        <div class="zoom-container" onclick="event.stopPropagation()">
+            <img id="zoomImage" class="zoom-image" src="" alt="Zoom">
+            <div class="zoom-controls">
+                <button class="zoom-btn" onclick="zoomIn()">
+                    <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
+                    </svg>
+                </button>
+                <button class="zoom-btn" onclick="zoomOut()">
+                    <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" />
+                    </svg>
+                </button>
+                <button class="zoom-btn" onclick="closeZoom()">
+                    <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calculator Modal -->
+    <div class="modal-overlay" id="calculatorModal">
+        <div class="modal">
+            <button class="modal-close" onclick="closeCalculator()">
+                <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    Calculadora
+                </h2>
+            </div>
+            <div class="calculator">
+                <div class="calculator-display" id="calcDisplay">0</div>
+                <div class="calculator-buttons">
+                    <button class="calc-btn clear" onclick="calcClear()">C</button>
+                    <button class="calc-btn operator" onclick="calcInput('/')">/</button>
+                    <button class="calc-btn operator" onclick="calcInput('*')">×</button>
+                    <button class="calc-btn operator" onclick="calcDelete()">⌫</button>
+                    
+                    <button class="calc-btn" onclick="calcInput('7')">7</button>
+                    <button class="calc-btn" onclick="calcInput('8')">8</button>
+                    <button class="calc-btn" onclick="calcInput('9')">9</button>
+                    <button class="calc-btn operator" onclick="calcInput('-')">-</button>
+                    
+                    <button class="calc-btn" onclick="calcInput('4')">4</button>
+                    <button class="calc-btn" onclick="calcInput('5')">5</button>
+                    <button class="calc-btn" onclick="calcInput('6')">6</button>
+                    <button class="calc-btn operator" onclick="calcInput('+')">+</button>
+                    
+                    <button class="calc-btn" onclick="calcInput('1')">1</button>
+                    <button class="calc-btn" onclick="calcInput('2')">2</button>
+                    <button class="calc-btn" onclick="calcInput('3')">3</button>
+                    <button class="calc-btn" onclick="calcInput('.')">.</button>
+                    
+                    <button class="calc-btn" onclick="calcInput('0')">0</button>
+                    <button class="calc-btn equals" onclick="calcEquals()">=</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Color Picker Modal -->
+    <div class="modal-overlay" id="colorPickerModal">
+        <div class="modal">
+            <button class="modal-close" onclick="closeColorPicker()">
+                <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                    </svg>
+                    Color de Fondo
+                </h2>
+            </div>
+            <div class="color-picker-container">
+                <div class="color-options">
+                    <div class="color-option" style="background-color: #0f0f0f;" onclick="changeBackgroundColor('#0f0f0f')"></div>
+                    <div class="color-option" style="background-color: #1a1a2e;" onclick="changeBackgroundColor('#1a1a2e')"></div>
+                    <div class="color-option" style="background-color: #16213e;" onclick="changeBackgroundColor('#16213e')"></div>
+                    <div class="color-option" style="background-color: #1f1f1f;" onclick="changeBackgroundColor('#1f1f1f')"></div>
+                    <div class="color-option" style="background-color: #2d1b3d;" onclick="changeBackgroundColor('#2d1b3d')"></div>
+                    <div class="color-option" style="background-color: #1e3a5f;" onclick="changeBackgroundColor('#1e3a5f')"></div>
+                    <div class="color-option" style="background-color: #1a472a;" onclick="changeBackgroundColor('#1a472a')"></div>
+                    <div class="color-option" style="background-color: #4a1a1a;" onclick="changeBackgroundColor('#4a1a1a')"></div>
+                    <div class="color-option" style="background-color: #2c3e50;" onclick="changeBackgroundColor('#2c3e50')"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let games = [];
+        let timers = {};
+        let currentGameId = null;
+        let currentUser = null;
+        let gallery = [];
+        let zoomLevel = 1;
+        let calcExpression = '';
+        let calcResult = '0';
+        let fabMenuOpen = false;
+
+        // Initialize
+        function init() {
+            checkLogin();
+        }
+
+        // Auth Functions
+        function checkLogin() {
+            const savedUser = localStorage.getItem('current-user');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                showMainApp();
+            }
+        }
+
+        function switchTab(tab) {
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const tabs = document.querySelectorAll('.login-tab');
+
+            tabs.forEach(t => t.classList.remove('active'));
+            
+            if (tab === 'login') {
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+                tabs[0].classList.add('active');
+            } else {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+                tabs[1].classList.add('active');
+            }
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const user = users.find(u => u.username === username && u.password === password);
+
+            if (user) {
+                currentUser = { username: user.username, email: user.email };
+                localStorage.setItem('current-user', JSON.stringify(currentUser));
+                showMainApp();
+            } else {
+                alert('Usuario o contraseña incorrectos');
+            }
+        }
+
+        function handleRegister(event) {
+            event.preventDefault();
+            const username = document.getElementById('registerUsername').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            
+            if (users.find(u => u.username === username)) {
+                alert('El usuario ya existe');
+                return;
+            }
+
+            users.push({ username, email, password });
+            localStorage.setItem('users', JSON.stringify(users));
+
+            currentUser = { username, email };
+            localStorage.setItem('current-user', JSON.stringify(currentUser));
+            showMainApp();
+        }
+
+        function logout() {
+            if (confirm('¿Cerrar sesión?')) {
+                localStorage.removeItem('current-user');
+                currentUser = null;
+                document.getElementById('loginScreen').classList.remove('hidden');
+                document.getElementById('mainApp').classList.add('hidden');
+            }
+        }
+
+        function showMainApp() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            document.getElementById('currentUsername').textContent = currentUser.username;
+            loadUserData();
+            renderGames();
+            updateStats();
+        }
+
+        function loadUserData() {
+            const userData = localStorage.getItem(`games-${currentUser.username}`);
+            if (userData) {
+                games = JSON.parse(userData);
+            }
+            const galleryData = localStorage.getItem(`gallery-${currentUser.username}`);
+            if (galleryData) {
+                gallery = JSON.parse(galleryData);
+            }
+        }
+
+        function saveGames() {
+            if (currentUser) {
+                localStorage.setItem(`games-${currentUser.username}`, JSON.stringify(games));
+            }
+        }
+
+        function saveGallery() {
+            if (currentUser) {
+                localStorage.setItem(`gallery-${currentUser.username}`, JSON.stringify(gallery));
+            }
+        }
+
+        // FAB Menu
+        function toggleFabMenu() {
+            fabMenuOpen = !fabMenuOpen;
+            const menu = document.getElementById('fabMenu');
+            const fab = document.getElementById('mainFab');
+            
+            if (fabMenuOpen) {
+                menu.classList.add('active');
+                fab.style.transform = 'rotate(45deg)';
+            } else {
+                menu.classList.remove('active');
+                fab.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        // Render
+        function renderGames() {
+            const container = document.getElementById('gamesList');
+            const emptyState = document.getElementById('emptyState');
+
+            if (games.length === 0) {
+                container.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            container.innerHTML = games.map(game => `
+                <div class="game-card" data-id="${game.id}">
+                    <div class="game-header">
+                        <div class="game-info">
+                            <div class="game-title">${game.name}</div>
+                            <div class="game-badges">
+                                <span class="badge badge-secondary">${game.platform}</span>
+                                <span class="badge badge-outline">${game.genre}</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-icon btn-ghost btn-delete" onclick="deleteGame('${game.id}')">
+                            <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="game-stats">
+                        <div class="game-stat-box">
+                            <div class="game-stat-content">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color: #3b82f6;">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <div>
+                                    <div class="game-stat-label">Tiempo jugado</div>
+                                    <div class="game-stat-value" id="time-${game.id}">${formatTime(game.totalTime)}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="game-stat-box">
+                            <div class="game-stat-content">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color: #eab308;">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                                </svg>
+                                <div>
+                                    <div class="game-stat-label">Trofeos</div>
+                                    <div class="game-stat-value">${game.trophies.length}</div>
+                                </div>
+                            </div>
+                            <button class="btn btn-outline" onclick="openTrophiesModal('${game.id}')">Ver</button>
+                        </div>
+                    </div>
+                    <button class="btn btn-full btn-lg ${timers[game.id] ? 'btn-destructive' : 'btn-primary'}" 
+                            id="timer-btn-${game.id}" 
+                            onclick="toggleTimer('${game.id}')">
+                        <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            ${timers[game.id] 
+                                ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />'
+                                : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />'
+                            }
+                        </svg>
+                        ${timers[game.id] ? 'Pausar' : 'Jugar Ahora'}
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // Timer Functions
+        function toggleTimer(gameId) {
+            if (timers[gameId]) {
+                stopTimer(gameId);
+            } else {
+                startTimer(gameId);
+            }
+        }
+
+        function startTimer(gameId) {
+            const game = games.find(g => g.id === gameId);
+            if (!game) return;
+
+            timers[gameId] = {
+                startTime: Date.now(),
+                initialTime: game.totalTime,
+                interval: setInterval(() => updateTimerDisplay(gameId), 1000)
+            };
+
+            renderGames();
+        }
+
+        function stopTimer(gameId) {
+            if (!timers[gameId]) return;
+
+            const timer = timers[gameId];
+            clearInterval(timer.interval);
+
+            const elapsed = Math.floor((Date.now() - timer.startTime) / 1000);
+            const game = games.find(g => g.id === gameId);
+            if (game) {
+                game.totalTime = timer.initialTime + elapsed;
+                saveGames();
+                updateStats();
+            }
+
+            delete timers[gameId];
+            renderGames();
+        }
+
+        function updateTimerDisplay(gameId) {
+            const timer = timers[gameId];
+            if (!timer) return;
+
+            const elapsed = Math.floor((Date.now() - timer.startTime) / 1000);
+            const totalTime = timer.initialTime + elapsed;
+
+            const timeElement = document.getElementById(`time-${gameId}`);
+            if (timeElement) {
+                timeElement.textContent = formatTime(totalTime);
+            }
+        }
+
+        // Format Time
+        function formatTime(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            return `${hours}h ${minutes}m ${secs}s`;
+        }
+
+        function formatTotalTime(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+        }
+
+        // Update Stats
+        function updateStats() {
+            const totalGames = games.length;
+            const totalTime = games.reduce((sum, game) => sum + game.totalTime, 0);
+            const totalTrophies = games.reduce((sum, game) => sum + game.trophies.length, 0);
+
+            document.getElementById('totalGames').textContent = totalGames;
+            document.getElementById('totalTime').textContent = formatTotalTime(totalTime);
+            document.getElementById('totalTrophies').textContent = totalTrophies;
+        }
+
+        // Add Game Modal
+        function openAddGameModal() {
+            document.getElementById('addGameModal').classList.add('active');
+        }
+
+        function closeAddGameModal() {
+            document.getElementById('addGameModal').classList.remove('active');
+            document.getElementById('gameName').value = '';
+            document.getElementById('gamePlatform').value = '';
+            document.getElementById('gameGenre').value = '';
+        }
+
+        function addGame(event) {
+            event.preventDefault();
+
+            const name = document.getElementById('gameName').value;
+            const platform = document.getElementById('gamePlatform').value;
+            const genre = document.getElementById('gameGenre').value;
+
+            const game = {
+                id: crypto.randomUUID(),
+                name,
+                platform,
+                genre,
+                totalTime: 0,
+                trophies: [],
+                createdAt: new Date().toISOString()
+            };
+
+            games.push(game);
+            saveGames();
+            renderGames();
+            updateStats();
+            closeAddGameModal();
+        }
+
+        // Delete Game
+        function deleteGame(gameId) {
+            if (!confirm('¿Estás seguro de eliminar este juego?')) return;
+
+            if (timers[gameId]) {
+                stopTimer(gameId);
+            }
+
+            games = games.filter(g => g.id !== gameId);
+            saveGames();
+            renderGames();
+            updateStats();
+        }
+
+        // Trophies Modal
+        function openTrophiesModal(gameId) {
+            currentGameId = gameId;
+            const game = games.find(g => g.id === gameId);
+            if (!game) return;
+
+            document.getElementById('trophiesGameName').textContent = `Trofeos - ${game.name}`;
+            renderTrophies();
+            document.getElementById('trophiesModal').classList.add('active');
+        }
+
+        function closeTrophiesModal() {
+            document.getElementById('trophiesModal').classList.remove('active');
+            currentGameId = null;
+        }
+
+        function renderTrophies() {
+            const game = games.find(g => g.id === currentGameId);
+            if (!game) return;
+
+            const content = document.getElementById('trophiesContent');
+            
+            let html = `
+                <button class="btn btn-primary btn-full btn-lg" onclick="showAddTrophyForm()">
+                    <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Agregar Trofeo
+                </button>
+                <div id="addTrophyFormContainer"></div>
+            `;
+
+            if (game.trophies.length === 0) {
+                html += `
+                    <div class="empty-state" style="padding: 32px 16px;">
+                        <svg width="48" height="48" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="margin: 0 auto 8px; opacity: 0.3;">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                        </svg>
+                        <p style="font-size: 14px;">No hay trofeos aún</p>
+                        <p style="font-size: 12px;">Agrega tu primer trofeo</p>
+                    </div>
+                `;
+            } else {
+                html += '<div class="trophy-list" style="margin-top: 16px;">';
+                game.trophies.forEach(trophy => {
+                    const date = new Date(trophy.earnedDate);
+                    const formattedDate = date.toLocaleDateString('es-ES', { 
+                        year: 'numeric', 
+                        month: 'short', 
+                        day: 'numeric' 
+                    });
+
+                    html += `
+                        <div class="trophy-item">
+                            <div class="trophy-content">
+                                <svg class="trophy-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                                </svg>
+                                <div class="trophy-info">
+                                    <div class="trophy-name">${trophy.name}</div>
+                                    <div class="trophy-date">${formattedDate}</div>
+                                </div>
+                                <span class="badge trophy-badge ${trophy.type}">${getTrophyLabel(trophy.type)}</span>
+                            </div>
+                            <button class="btn btn-icon btn-ghost btn-delete" onclick="deleteTrophy('${trophy.id}')">
+                                <svg width="14" height="14" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+
+            content.innerHTML = html;
+        }
+
+        function showAddTrophyForm() {
+            const container = document.getElementById('addTrophyFormContainer');
+            container.innerHTML = `
+                <form class="add-trophy-form" onsubmit="addTrophy(event)" style="margin-top: 16px;">
+                    <div class="form-group">
+                        <label class="form-label" for="trophyName">Nombre del Trofeo</label>
+                        <input type="text" class="form-input" id="trophyName" placeholder="Ej: Completar el juego" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="trophyType">Tipo</label>
+                        <select class="form-select" id="trophyType" required>
+                            <option value="bronze">🥉 Bronce</option>
+                            <option value="silver">🥈 Plata</option>
+                            <option value="gold">🥇 Oro</option>
+                            <option value="platinum">💎 Platino</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                        <button type="button" class="btn btn-outline" onclick="hideAddTrophyForm()">Cancelar</button>
+                    </div>
+                </form>
+            `;
+        }
+
+        function hideAddTrophyForm() {
+            document.getElementById('addTrophyFormContainer').innerHTML = '';
+        }
+
+        function addTrophy(event) {
+            event.preventDefault();
+
+            const name = document.getElementById('trophyName').value;
+            const type = document.getElementById('trophyType').value;
+
+            const game = games.find(g => g.id === currentGameId);
+            if (!game) return;
+
+            const trophy = {
+                id: crypto.randomUUID(),
+                name,
+                type,
+                earnedDate: new Date().toISOString()
+            };
+
+            game.trophies.push(trophy);
+            saveGames();
+            updateStats();
+            renderTrophies();
+            hideAddTrophyForm();
+        }
+
+        function deleteTrophy(trophyId) {
+            const game = games.find(g => g.id === currentGameId);
+            if (!game) return;
+
+            game.trophies = game.trophies.filter(t => t.id !== trophyId);
+            saveGames();
+            updateStats();
+            renderTrophies();
+        }
+
+        function getTrophyLabel(type) {
+            const labels = {
+                bronze: 'Bronce',
+                silver: 'Plata',
+                gold: 'Oro',
+                platinum: 'Platino'
+            };
+            return labels[type] || type;
+        }
+
+        // Gallery Functions
+        function openGalleryModal() {
+            renderGallery();
+            document.getElementById('galleryModal').classList.add('active');
+        }
+
+        function closeGalleryModal() {
+            document.getElementById('galleryModal').classList.remove('active');
+        }
+
+        function renderGallery() {
+            const grid = document.getElementById('galleryGrid');
+            const uploadButton = `
+                <label class="gallery-upload">
+                    <input type="file" accept="image/*" onchange="uploadImage(event)" style="display: none;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span>Agregar Imagen</span>
+                </label>
+            `;
+
+            const imagesHtml = gallery.map(img => `
+                <div class="gallery-item">
+                    <img src="${img.data}" alt="Captura" onclick="openZoom('${img.data}')">
+                    <button class="gallery-delete" onclick="deleteImage('${img.id}')">
+                        <svg width="14" height="14" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            `).join('');
+
+            grid.innerHTML = uploadButton + imagesHtml;
+        }
+
+        function uploadImage(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = {
+                    id: crypto.randomUUID(),
+                    data: e.target.result,
+                    createdAt: new Date().toISOString()
+                };
+                gallery.push(img);
+                saveGallery();
+                renderGallery();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function deleteImage(imgId) {
+            gallery = gallery.filter(img => img.id !== imgId);
+            saveGallery();
+            renderGallery();
+        }
+
+        // Zoom Functions
+        function openZoom(imgSrc) {
+            document.getElementById('zoomImage').src = imgSrc;
+            document.getElementById('zoomOverlay').classList.add('active');
+            zoomLevel = 1;
+        }
+
+        function closeZoom() {
+            document.getElementById('zoomOverlay').classList.remove('active');
+            const img = document.getElementById('zoomImage');
+            img.style.transform = 'scale(1)';
+            zoomLevel = 1;
+        }
+
+        function zoomIn() {
+            zoomLevel = Math.min(zoomLevel + 0.2, 3);
+            document.getElementById('zoomImage').style.transform = `scale(${zoomLevel})`;
+        }
+
+        function zoomOut() {
+            zoomLevel = Math.max(zoomLevel - 0.2, 0.5);
+            document.getElementById('zoomImage').style.transform = `scale(${zoomLevel})`;
+        }
+
+        // Calculator Functions
+        function openCalculator() {
+            document.getElementById('calculatorModal').classList.add('active');
+        }
+
+        function closeCalculator() {
+            document.getElementById('calculatorModal').classList.remove('active');
+        }
+
+        function calcInput(value) {
+            if (calcResult === '0' && value !== '.') {
+                calcExpression = value;
+            } else {
+                calcExpression += value;
+            }
+            calcResult = calcExpression;
+            document.getElementById('calcDisplay').textContent = calcResult;
+        }
+
+        function calcClear() {
+            calcExpression = '';
+            calcResult = '0';
+            document.getElementById('calcDisplay').textContent = calcResult;
+        }
+
+        function calcDelete() {
+            calcExpression = calcExpression.slice(0, -1);
+            calcResult = calcExpression || '0';
+            document.getElementById('calcDisplay').textContent = calcResult;
+        }
+
+        function calcEquals() {
+            try {
+                calcResult = eval(calcExpression.replace('×', '*')).toString();
+                calcExpression = calcResult;
+                document.getElementById('calcDisplay').textContent = calcResult;
+            } catch (e) {
+                calcResult = 'Error';
+                document.getElementById('calcDisplay').textContent = calcResult;
+            }
+        }
+
+        // Color Picker Functions
+        function openColorPicker() {
+            const currentColor = getComputedStyle(document.body).getPropertyValue('--bg-color') || '#0f0f0f';
+            document.querySelectorAll('.color-option').forEach(opt => {
+                opt.classList.remove('selected');
+                if (opt.style.backgroundColor === currentColor || rgbToHex(opt.style.backgroundColor) === currentColor) {
+                    opt.classList.add('selected');
+                }
+            });
+            document.getElementById('colorPickerModal').classList.add('active');
+        }
+
+        function closeColorPicker() {
+            document.getElementById('colorPickerModal').classList.remove('active');
+        }
+
+        function changeBackgroundColor(color) {
+            document.documentElement.style.setProperty('--bg-color', color);
+            localStorage.setItem('bg-color', color);
+            
+            document.querySelectorAll('.color-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            event.target.classList.add('selected');
+        }
+
+        function rgbToHex(rgb) {
+            const result = rgb.match(/\d+/g);
+            if (!result) return rgb;
+            return '#' + result.map(x => parseInt(x).toString(16).padStart(2, '0')).join('');
+        }
+
+        // Load saved color
+        const savedColor = localStorage.getItem('bg-color');
+        if (savedColor) {
+            document.documentElement.style.setProperty('--bg-color', savedColor);
+        }
+
+        // Close modals on overlay click
+        document.getElementById('addGameModal').addEventListener('click', (e) => {
+            if (e.target.id === 'addGameModal') closeAddGameModal();
+        });
+
+        document.getElementById('trophiesModal').addEventListener('click', (e) => {
+            if (e.target.id === 'trophiesModal') closeTrophiesModal();
+        });
+
+        document.getElementById('galleryModal').addEventListener('click', (e) => {
+            if (e.target.id === 'galleryModal') closeGalleryModal();
+        });
+
+        document.getElementById('calculatorModal').addEventListener('click', (e) => {
+            if (e.target.id === 'calculatorModal') closeCalculator();
+        });
+
+        document.getElementById('colorPickerModal').addEventListener('click', (e) => {
+            if (e.target.id === 'colorPickerModal') closeColorPicker();
+        });
+
+        // Initialize app
+        init();
+    </script>
+</body>
+</html>
